@@ -1,15 +1,21 @@
+# This script simulates the interaction between circular molecules (class Circ) and 
+# a circular pore (class Circonf), using a truncated normal distribution to generate
+# molecule radii. It evaluates which molecules fit inside the pore based on their
+# position and size, then visualizes the accepted configurations and their probability 
+# distribution. The probability function is compared with the analytical function F.
+
 from scipy.stats import truncnorm
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle,Circle
 import random,math
 
-# Definizione della classe per il poro rettangolare; parametri altezza e larghezza
+# Definition of the class for the rectangular pore; parameters: height and width
 class Circonf:
     def __init__(self,radius):
         self.radius=radius        
 
-# Definizione della classe per le molecole circlari; parametri raggio e coordinate del centro
+# Definition of the class for circular molecules; parameters: radius and coordinates of the center
 class Circ:
     def __init__(self):
         j=0
@@ -22,27 +28,27 @@ class Circ:
                 j=1
             else:
                 plt.plot(x,y,'ro')
-        '''Nota: uso coordinate polari, modifico la distribuzione di rho per rendere la distrib
-        dei centri uniforme. Uso distribuzione di q per appoggiarmi'''
+        '''Note: I use polar coordinates, I modify the distribution of rho to make the distribution
+        of centers uniform. I use the distribution of q as a support'''
         q=random.uniform(0,poro.radius**2/2)
         self.rho=math.sqrt(2*q)
         self.theta=random.uniform(0,2*math.pi)
         
 
 
-# Distribuzione normale troncata
+# Truncated normal distribution
 def Distrib_r(t):
     return truncnorm.pdf(t,a=-mu/sigma,b=-mu/sigma+poro.radius,loc=mu,scale=sigma)
     
 
-# Altezza della distribuzione normale troncata
+# Height of the truncated normal distribution
 def Alt(x):
     y_max=0
     for i in range(len(x)):
         if y_max<Distrib_r(x[i]): y_max=Distrib_r(x[i])
     return y_max
     
-# Interazione poro-molecola (valutazione del contatto)
+# Pore-molecule interaction (contact evaluation)
 def gen_and_interaction(N,por):
     acc=[]
     for i in range (N):
@@ -61,40 +67,40 @@ def gen_and_interaction(N,por):
             ax.add_patch(circ)'''
     return acc
 
-# Funzione teorica rappresentante probabilità di accettare una certa configurazione (vedi ultime righe)
+# Theoretical function representing the probability of accepting a certain configuration (see last lines)
 def F(t):
-    Deltar=Distrib_r(t)  # Probabilità di avere un certo raggio dentro la distribuzione
-    P=(poro.radius-t)**2/poro.radius**2  # Probabilità molecola accettata con raggio t
+    Deltar=Distrib_r(t)  # Probability of having a certain radius within the distribution
+    P=(poro.radius-t)**2/poro.radius**2  # Probability that a molecule with radius t is accepted
     return P * Deltar 
 
 
 
-N=1000 # numero di configurazioni testate    
-nbins=50 # numero di bin per la rappresentazione di c[] in un istogramma
+N=1000 # number of configurations tested    
+nbins=50 # number of bins for the representation of c[] in a histogram
 
 
 
-poro=Circonf(10) # Inizializzazione del poro circolare
+poro=Circonf(10) # Initialization of the circular pore
 
 
-# La distribuzione dei raggi ###########################################
-# Dati della distribuzione sui raggi, in input solo mu e sigma della normale
-# Dati 1 e 2 per semiassi 1 e 2 
+# The distribution of radii ###########################################
+# Data for the radius distribution, as input only mu and sigma of the normal
+# Data 1 and 2 for semiaxes 1 and 2 
 mu=    6
 sigma= 1.5
 
 
 
-A=mu+5*sigma   # larghezza del rettangolo di integrazione (5 sigma, probabilità valore maggiore > 1%)
-sup=math.floor(A)+1 # uso come estremo superiore di definizione della distribuzione e 
-                        # di integrazione lungo x
+A=mu+5*sigma   # width of the integration rectangle (5 sigma, probability of a value greater > 1%)
+sup=math.floor(A)+1 # used as upper limit for the definition of the distribution and 
+                        # for integration along x
 
-x_range = np.linspace(-2,sup,10000)  # Dominio della distribuzione
-B=Alt(x_range)*4/3     # Valore massimo di y massimo nell'integrazione
+x_range = np.linspace(-2,sup,10000)  # Domain of the distribution
+B=Alt(x_range)*4/3     # Maximum value of y in the integration
 ######################################################################
 
 
-##### Plot distribuzione troncata ##############################
+##### Plot truncated distribution ##############################
 fig, ax = plt.subplots(figsize=(10,10))
 
 #axes range and labels
@@ -137,51 +143,51 @@ ax.add_patch(cir)
 
 
 
-c=gen_and_interaction(N,poro) # Lista dei raggi delle configurazioni accettate
+c=gen_and_interaction(N,poro) # List of radii of accepted configurations
 plt.savefig('MCintegr.png')
 plt.show()
 ######################################################################
-# weights, il numero di configurazioni contanute in c è riscalato in un istogramma 
-# per il numero totale di configurazioni N
+# weights, the number of configurations contained in c is rescaled in a histogram 
+# by the total number of configurations N
 c1=np.ones(len(c))/N/(poro.radius/nbins) 
 
-# Plotto il prossimo istogramma, i cui conteggi per ciascun bin sono rinormalizzati per N
+# I plot the next histogram, whose counts for each bin are renormalized by N
 fig, ax = plt.subplots(figsize=(10,10))
 '''
-counts  = numpy.ndarray of count of data ponts for each bin/column in the histogram
+counts  = numpy.ndarray of count of data points for each bin/column in the histogram
 bins    = numpy.ndarray of bin edge/range values
 patches = a list of Patch objects.
-        each Patch object contains a Rectnagle object. 
+        each Patch object contains a Rectangle object. 
         e.g. Rectangle(xy=(-2.51953, 0), width=0.501013, height=3, angle=0)
 
-L'istogramma è da normalizzare per N, e ciascuna barra rappresenta l'area disponibile per ogni raggio,
-moltiplicato per la probabilità di avere quel raggio (estratto da distribuzione uniforme).
-Errore sperimentale del metodo: 1*counts**(-0.5) (poissoniano)
+The histogram must be normalized by N, and each bar represents the available area for each radius,
+multiplied by the probability of having that radius (extracted from uniform distribution).
+Experimental error of the method: 1*counts**(-0.5) (Poissonian)
 '''
 counts, bins, patches= ax.hist(c,bins=nbins,range=(0,poro.radius),weights=c1,facecolor='none', edgecolor='gray') 
 
-# Calcolo il centro di ogni bin per poi plottare le barre d'errore
-# ogni centro è la metà larghezza di un bin più le larghezze dei bin precedenti
+# Calculate the center of each bin to then plot the error bars
+# each center is half the width of a bin plus the widths of the previous bins
 bin_x_centers = 0.5 * np.diff(bins) + bins[:-1]
 #print(bin_x_centers)
 
-# Calcolo l'errore del metodo, poi plotto con errorbar
+# Calculate the error of the method, then plot with errorbar
 error=np.zeros(nbins)
 
-# Errore assoluto: errore relativo per conteggi normalizzati di ogni colonna
-# Errore relativo: di tipo poissoniano, 1/(numero di conteggi non normalizzati^(-1))
+# Absolute error: relative error for normalized counts of each column
+# Relative error: Poissonian type, 1/(number of unnormalized counts^(-1))
 for i in range(nbins): error[i]=math.sqrt(counts[i]/N)
-plt.errorbar(x=bin_x_centers, y=counts, yerr=error, fmt='none') # plot barre d'errore
+plt.errorbar(x=bin_x_centers, y=counts, yerr=error, fmt='none') # plot error bars
 
-# Dettagli del plot
+# Plot details
 #plt.title('Probability function', fontsize=20)
 plt.ylabel('F(r)[A$^{-1}$]', fontsize=15)
 plt.xlabel('r[A]', fontsize=15)
 
 ra=np.arange(0,poro.radius+0.2,0.1)
 plt.plot(ra,F(ra)) 
-# Calcolo e plotto la funzione di probabilità prodotto di:
-# area disponibile per ogni raggio
-# probabilità di ottenere un raggio dalla distribuzione
+# I calculate and plot the probability function which is the product of:
+# available area for each radius
+# probability of obtaining a radius from the distribution
 #plt.savefig('Funzione_prob.png')
 plt.show()
