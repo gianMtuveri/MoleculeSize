@@ -1,124 +1,82 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.patches import Rectangle,Circle
-import random,math
+from matplotlib.patches import Circle
+import random, math
 
-# Definizione della classe per il poro rettangolare; parametri altezza e larghezza
-class Circonf:
-    def __init__(self,radius):
-        self.radius=radius        
+# Class for the circular pore
+class Pore:
+    def __init__(self, radius):
+        self.radius = radius
 
-# Definizione della classe per le molecole circlari; parametri raggio e coordinate del centro
-class Circ:
-    def __init__(self,r_min,r_max):
-        self.radius=random.uniform(r_min, r_max)
-        '''Nota: uso coordinate polari, modifico la distribuzione di rho per rendere la distrib
-        dei centri uniforme. Uso distribuzione di q per appoggiarmi'''
-        q=random.uniform(0,poro.radius**2/2)
-        self.rho=math.sqrt(2*q)
-        self.theta=random.uniform(0,2*math.pi)
+# Class for the circular molecule
+class Molecule:
+    def __init__(self, r_min, r_max, pore_radius):
+        self.radius = random.uniform(r_min, r_max)
+        # Use polar coordinates, modify rho distribution for uniform center distribution
+        q = random.uniform(0, pore_radius**2 / 2)
+        self.rho = math.sqrt(2 * q)
+        self.theta = random.uniform(0, 2 * math.pi)
 
-# Interazione poro-molecola (valutazione del contatto)
-def gen_and_interaction(N,por,r_min,r_max):
-    acc=[]
-    for i in range (N):
-        if (i==N/4):print("25%")
-        elif (i==N/2):print("50%")
-        elif (i==N/4*3):print("75%")
-        mol=Circ(r_min,r_max)
-        if (mol.rho+mol.radius<por.radius):
-            acc.append(mol.radius)
-            plt.plot(mol.rho*math.cos(mol.theta*180/math.pi), mol.rho*math.sin(mol.theta*180/math.pi),'bo')
-            '''circ=Circle((mol.x,mol.y), mol.radius,
-            edgecolor='blue',facecolor='none')
-            ax.add_patch(circ)'''
-        else:
-            
-            plt.plot(mol.rho*math.cos(mol.theta*180/math.pi), mol.rho*math.sin(mol.theta*180/math.pi),'bo')
-            '''circ=Circle((mol.x,mol.y), mol.radius,
-            edgecolor='red',facecolor='none')
-            ax.add_patch(circ)'''
-    return acc
+# Generate molecules and check molecule-pore interaction (contact)
+def generate_and_check(N, pore, r_min, r_max, ax=None):
+    accepted_radii = []
+    for i in range(N):
+        if i == N // 4: print("25%")
+        elif i == N // 2: print("50%")
+        elif i == (N * 3) // 4: print("75%")
+        mol = Molecule(r_min, r_max, pore.radius)
+        x = mol.rho * math.cos(mol.theta)
+        y = mol.rho * math.sin(mol.theta)
+        color = 'blue' if (mol.rho + mol.radius < pore.radius) else 'red'
+        if ax is not None:
+            ax.plot(x, y, 'o', color=color, markersize=2)
+            # To see the actual molecule circles, uncomment:
+            # circ = Circle((x, y), mol.radius, edgecolor=color, facecolor='none', linewidth=0.5, alpha=0.4)
+            # ax.add_patch(circ)
+        if mol.rho + mol.radius < pore.radius:
+            accepted_radii.append(mol.radius)
+    return accepted_radii
 
-# Funzione teorica rappresentante probabilità di accettare una certa configurazione (vedi ultime righe)
-def F(t):
-    Deltabin=(b-a)/nbins # Larghezza del bin, influisce sulla funzione modificando numero di conteggi
-    Deltar=1/(b-a)       # Probabilità di avere un certo raggio dentro la distribuzione
-    return (poro.radius-t)**2/poro.radius**2 * Deltar * Deltabin
+# Theoretical function representing the probability of accepting a given configuration
+def theoretical_probability(t, pore_radius, a, b, nbins):
+    bin_width = (b - a) / nbins
+    prob_r = 1 / (b - a)
+    return ((pore_radius - t) ** 2) / (pore_radius ** 2) * prob_r * bin_width
 
-    
-a=8;b=12  # Raggio scelto in distrubuzione uniforme tra questi estremi
-N=10000 # numero di configurazioni testate    
-nbins=20 # numero di bin per la rappresentazione di c[] in un istogramma
+a = 8                # Minimum radius for molecule
+b = 12               # Maximum radius for molecule
+N = 10000            # Number of tested configurations
+nbins = 20           # Number of bins for the histogram
 
+pore = Pore(10)      # Initialize the circular pore
 
-
-
-poro=Circonf(10) # Inizializzazione del poro circolare
-
-#define Matplotlib figure and axis
-fig, ax = plt.subplots(figsize=(10,10))
-
-#axes range and labels
+# Plot the pore and molecules
+fig, ax = plt.subplots(figsize=(8, 8))
 plt.gca().set_aspect('equal', adjustable='box')
+pore_circle = Circle((0, 0), pore.radius, linewidth=2, edgecolor='black', facecolor='none')
+ax.add_patch(pore_circle)
 
-
-
-#add rectangle to plot##########
-cir = Circle((0,0),poro.radius,linewidth=2,
-edgecolor='black',facecolor='none')
-
-# Add the patch to the Axes
-ax.add_patch(cir)
-################################
-
-
-
-c=gen_and_interaction(N,poro,a,b) # Lista dei raggi delle configurazioni accettate
-        
+accepted_radii = generate_and_check(N, pore, a, b, ax=ax)
 plt.axis("off")
 plt.savefig('Distr_rt_uni.png')
 plt.show()
 
-# weights, il numero di configurazioni contanute in c è riscalato in un istogramma 
-# per il numero totale di configurazioni N
-c1=np.ones(len(c))/N  
+# Histogram is normalized by the total number of configurations
+weights = np.ones(len(accepted_radii)) / N
+fig, ax = plt.subplots(figsize=(8, 8))
+counts, bins, patches = ax.hist(accepted_radii, bins=nbins, range=(a, b), weights=weights, facecolor='none', edgecolor='gray')
 
-# Plotto il prossimo istogramma, i cui conteggi per ciascun bin sono rinormalizzati per N
-fig, ax = plt.subplots(figsize=(10,10))
-'''
-counts  = numpy.ndarray of count of data ponts for each bin/column in the histogram
-bins    = numpy.ndarray of bin edge/range values
-patches = a list of Patch objects.
-        each Patch object contains a Rectnagle object. 
-        e.g. Rectangle(xy=(-2.51953, 0), width=0.501013, height=3, angle=0)
+# Calculate bin centers for error bars
+bin_centers = 0.5 * np.diff(bins) + bins[:-1]
+# Experimental error (Poissonian): sqrt(normalized count / N)
+error = np.sqrt(counts / N)
+plt.errorbar(x=bin_centers, y=counts, yerr=error, fmt='none', color='black')
 
-L'istogramma è da normalizzare per N, e ciascuna barra rappresenta l'area disponibile per ogni raggio,
-moltiplicato per la probabilità di avere quel raggio (estratto da distribuzione uniforme).
-Errore sperimentale del metodo: 1*counts**(-0.5) (poissoniano)
-'''
-counts, bins, patches= ax.hist(c,bins=nbins,range=(a,b),weights=c1,facecolor='none', edgecolor='gray') 
-
-# Calcolo il centro di ogni bin per poi plottare le barre d'errore
-# ogni centro è la metà larghezza di un bin più le larghezze dei bin precedenti
-bin_x_centers = 0.5 * np.diff(bins) + bins[:-1]
-
-# Calcolo l'errore del metodo, poi plotto con errorbar
-error=np.zeros(nbins)
-# Errore assoluto: errore relativo per conteggi normalizzati di ogni colonna
-# Errore relativo: di tipo poissoniano, 1/(numero di conteggi non normalizzati^(-1))
-for i in range(nbins): error[i]=math.sqrt(counts[i]/N) 
-plt.errorbar(x=bin_x_centers, y=counts, yerr=error, fmt='none') # plot barre d'errore
-
-# Dettagli del plot
-plt.title('Probability function', fontsize=20)
+plt.title('Probability Function', fontsize=20)
 plt.ylabel('P', fontsize=15)
-plt.xlabel('r[A]', fontsize=15)
+plt.xlabel('r [A]', fontsize=15)
 
-ra=np.arange(a,b+0.1,0.1)
-plt.plot(ra,F(ra)) 
-# Calcolo e plotto la funzione di probabilità prodotto di:
-# area disponibile per ogni raggio
-# probabilità di ottenere un raggio dalla distribuzione
-#plt.savefig('Funzione_prob.png')
+ra = np.arange(a, b + 0.1, 0.1)
+plt.plot(ra, theoretical_probability(ra, pore.radius, a, b, nbins), label='Theory')
+plt.legend()
 plt.show()
