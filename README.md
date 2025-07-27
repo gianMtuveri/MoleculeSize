@@ -1,6 +1,4 @@
-# MoleculeSize
-
-# Monte Carlo Simulation: Circular Molecules in a Circular Pore with Truncated Normal Radii
+# MoleculeSize: Circular Molecules in a Circular Pore with Truncated Normal Radii
 
 This project simulates the interaction between circular molecules and a circular pore, using a **Monte Carlo** approach. The radii of the molecules are drawn from a truncated normal distribution. The simulation evaluates which molecules fit inside the pore based on their position and size, then visualizes the accepted configurations and their probability distribution. The experimental probability is compared with the analytical function.
 
