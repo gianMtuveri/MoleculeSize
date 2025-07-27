@@ -1,11 +1,5 @@
 # MoleculeSize
 
-Here’s a README section specifically for `circ-circRT_wDistNormTrunc.py`, based on your code and description:
-
----
-
-## circ-circRT_wDistNormTrunc.py
-
 ### Overview
 
 This script simulates the interaction between circular molecules and a circular pore. It uses a truncated normal distribution to generate molecule radii and evaluates which molecules fit inside the pore based on their position and size. The script visualizes accepted configurations and their probability distribution, allowing for comparison between simulated and theoretical results.
