@@ -1,80 +1,37 @@
 # MoleculeSize
 
-### Overview
+# Circular Molecule Acceptance Simulation in a Circular Pore
 
-This script simulates the interaction between circular molecules and a circular pore. It uses a truncated normal distribution to generate molecule radii and evaluates which molecules fit inside the pore based on their position and size. The script visualizes accepted configurations and their probability distribution, allowing for comparison between simulated and theoretical results.
+This project simulates the probability of accepting circular molecules (with a random radius) inside a circular pore. The code generates random molecular configurations, checks if they fit within the pore, and compares the experimental acceptance probability (from normalized histograms) with the theoretical prediction. Visualization is provided using Matplotlib.
 
-### Features
+## Features
 
-- **Generates molecule radii** using a truncated normal distribution.
-- **Simulates random placement** of molecules and evaluates whether they fit inside a circular pore.
-- **Visualizes the accepted configurations** and their probability distribution.
-- **Compares simulation results to theoretical acceptance probabilities**.
+- Uniform random generation of molecule radii and positions
+- Acceptance test based on molecule-pore geometry
+- Experimental histogram of accepted radii, normalized by number of configurations
+- Error bars calculated using Poisson statistics
+- Analytical probability function for comparison
 
-### How It Works
+## Usage
 
-1. **Initialization**:  
-   - A circular pore is created with a specified radius.
-   - Molecule radii are generated from a truncated normal distribution (parameters `mu` and `sigma`).
-2. **Simulation**:  
-   - For a specified number of molecules (`N`), each molecule is randomly placed within the pore.
-   - The script checks if the molecule fits (is fully inside the pore) based on its center and radius.
-   - Accepted radii are stored for further analysis.
-3. **Visualization**:  
-   - Plots the truncated normal distribution of radii.
-   - Shows a histogram of accepted molecule radii, normalized and with error bars.
-   - Plots the theoretical acceptance probability for comparison.
-
-### Usage
-
-1. **Dependencies**:  
-   Ensure you have the following Python packages installed:
-   - numpy
-   - matplotlib
-   - scipy
-
-   You can install them using pip:
+1. Ensure you have Python 3, numpy, and matplotlib installed.
+2. Run the script:
    ```bash
-   pip install numpy matplotlib scipy
+   python circular_molecule_simulation.py
    ```
+3. The script will output:
+   - A visualization of all generated molecule centers in the pore
+   - The normalized histogram of accepted radii with error bars
+   - Theoretical probability curve for comparison
 
-2. **Run the Script**:  
-   ```bash
-   python circ-circRT_wDistNormTrunc.py
-   ```
+## Parameters
 
-3. **Configurable Parameters**:  
-   - `N`: Number of molecules to simulate (default: 1000).
-   - `mu`: Mean of the truncated normal distribution for molecule radius (default: 6).
-   - `sigma`: Standard deviation of the truncated normal distribution (default: 1.5).
-   - `poro.radius`: Radius of the circular pore (default: 10).
+- `a`, `b`: Minimum and maximum molecule radius for the uniform distribution
+- `N`: Number of configurations (samples)
+- `nbins`: Number of bins in the histogram
+- `pore.radius`: Radius of the circular pore
 
-4. **Outputs**:  
-   - `MCintegr.png`: Plot of the truncated normal radius distribution.
-   - Probability histogram and theoretical curve displayed using matplotlib.
+## Output
 
-### Code Structure
-
-- **Classes**:  
-  - `Circonf`: Represents the circular pore.
-  - `Circ`: Represents a circular molecule; handles random placement and radius assignment.
-- **Functions**:  
-  - `Distrib_r(t)`: Truncated normal PDF for molecule radii.
-  - `Alt(x)`: Finds the maximum value of the distribution for plotting.
-  - `gen_and_interaction(N, por)`: Simulates molecule placement and checks for acceptance.
-  - `F(t)`: Computes theoretical acceptance probability.
-
-### Example Plots
-
-- Truncated normal distribution for molecule radii.
-- Histogram of accepted molecule radii with error bars.
-- Theoretical acceptance probability curve.
-
-### Notes
-
-- The simulation assumes uniform distribution of molecule centers within the pore, corrected for polar coordinates.
-- Error bars are computed using Poisson statistics.
-
----
-
-Let me know if you’d like this tailored further, or if you want it as a `README.md` file!
+- `Distr_rt_uni.png`: Visualization of molecule centers within the pore
+- Probability histogram and theoretical curve (displayed with matplotlib)
